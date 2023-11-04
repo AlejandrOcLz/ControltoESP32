@@ -7,7 +7,7 @@ public class Gamepad : IDisposable
 
     public bool IsConnected { get; private set; }
 
-    public string InstanceName => joystick.Information.InstanceName;
+        public string InstanceName => joystick.Information.InstanceName;
 
 
     public Gamepad(Guid instanceGuid)
