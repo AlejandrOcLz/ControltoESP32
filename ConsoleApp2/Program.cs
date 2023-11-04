@@ -8,7 +8,6 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
-            // Inicializar DirectInput
             var directInput = new DirectInput();
 
             // Lista todos los dispositivos de juego
@@ -39,48 +38,41 @@ namespace ConsoleApp2
 
             var gamepadGuid = allDevices[deviceNumber - 1].InstanceGuid;
 
-            // Crear la instancia del joystick/gamepad
-            using (var joystick = new Joystick(directInput, gamepadGuid))
+            using (var gamepad = new Gamepad(gamepadGuid))
             {
-                Console.WriteLine("Control de videojuegos seleccionado: " + joystick.Information.InstanceName);
+                Console.WriteLine("Control de videojuegos seleccionado: " + gamepad.InstanceName);
 
-                // Adquirir el dispositivo
-                joystick.Properties.BufferSize = 128;
-                joystick.Acquire();
-
-                // Poll events from joystick
+                // Poll events from gamepad
                 while (true)
                 {
-                    joystick.Poll();
-                    var state = joystick.GetCurrentState();
-                    var buttons = state.Buttons;
-
-                    // Revisar los botones
-                    for (int i = 0; i < buttons.Length; i++)
-                    {
-                        if (buttons[i])
-                        {
-                            Console.WriteLine($"Botón {i} presionado");
-                        }
-                    }
-
-                    // Revisar los gatillos
-                    int leftTrigger = state.Z; // Este es comúnmente el gatillo izquierdo
-                    int rightTrigger = state.RotationZ; // Este es comúnmente el gatillo derecho
-
-                    // Suponiendo que los gatillos están en reposo en 0 y completamente presionados en 65535
-                    // puedes ajustar estos valores según tu control
-                    if (leftTrigger > 0)
-                    {
-                        Console.WriteLine($"Gatillo izquierdo presionado: {leftTrigger}");
-                    }
-                    if (rightTrigger > 0)
-                    {
-                        Console.WriteLine($"Gatillo derecho presionado: {rightTrigger}");
-                    }
-
+                    gamepad.PollEvents();
                     System.Threading.Thread.Sleep(10);
                 }
+            }
+
+            EspConnection serialHandler = new EspConnection("COM6", 115200); // Cambia "COM3" por tu puerto serial
+
+            try
+            {
+                serialHandler.OpenConnection();
+
+                while (true)
+                {
+                    var key = Console.ReadKey(intercept: true);
+                    if (key.Key == ConsoleKey.Enter)
+                    {
+                        // Envía un mensaje al ESP32.
+                        serialHandler.SendMessage(gamepad.InstanceName);
+                    }
+                    else if (key.Key == ConsoleKey.X)
+                    {
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                serialHandler.CloseConnection();
             }
         }
     }
