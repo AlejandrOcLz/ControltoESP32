@@ -1,16 +1,17 @@
 ﻿using System;
-
 using System.IO.Ports;
 
 public class EspConnection
 {
     private SerialPort serialPort;
-    public EspConnection(string portName, int baudRate)
+    public EspConnection(string portName, int baudRate, int db, bool Rts)
     {
         serialPort = new SerialPort
         {
             PortName = portName,
-            BaudRate = baudRate
+            BaudRate = baudRate,
+            DataBits = db,
+            RtsEnable = Rts,
         };
     }
 
@@ -36,12 +37,14 @@ public class EspConnection
         }
     }
 
-    public void SendMessage(string message)
+    public void SendMessage(Byte[] message)
     {
+        Console.WriteLine($"{message.GetValue(0)} {message.GetValue(1)} {message.GetValue(2)}");
+
         if (serialPort.IsOpen)
         {
-            serialPort.WriteLine(message);
-            Console.WriteLine($"Mensaje enviado: {message}");
+            serialPort.Write(message, 0, message.Length);
+            Console.WriteLine($"Mensaje enviado");
         }
         else
         {

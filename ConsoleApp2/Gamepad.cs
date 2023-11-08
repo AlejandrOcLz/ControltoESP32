@@ -19,35 +19,42 @@ public class Gamepad : IDisposable
         IsConnected = true;
     }
 
-    public void PollEvents()
+    public byte[] PollEvents()
     {
         joystick.Poll();
         var state = joystick.GetCurrentState();
         var buttons = state.Buttons;
+
+        String seleccion = "";
+        byte buttonPressed = 0;
 
         // Revisar los botones
         for (int i = 0; i < buttons.Length; i++)
         {
             if (buttons[i])
             {
-                Console.WriteLine($"Botón {i} presionado");
+                //Console.WriteLine($"Botón {i} presionado");
+                buttonPressed = (byte)(i+1);
             }
+            
+
+
         }
 
         // Revisar los gatillos
-        int leftTrigger = state.Z; // Este es comúnmente el gatillo izquierdo
-        int rightTrigger = state.RotationZ; // Este es comúnmente el gatillo derecho
+        int leftTrigger = state.X;
+        int rightTrigger = state.RotationZ;
 
-        // Suponiendo que los gatillos están en reposo en 0 y completamente presionados en 65535
-        // Puedes ajustar estos valores según tu control
-        if (leftTrigger > 0)
-        {
-            Console.WriteLine($"Gatillo izquierdo presionado: {leftTrigger}");
-        }
-        if (rightTrigger > 0)
-        {
-            Console.WriteLine($"Gatillo derecho presionado: {rightTrigger}");
-        }
+        rightTrigger = 65535 - rightTrigger;
+
+        byte leftTriggerByte = (byte)(leftTrigger / 257);
+        byte rightTriggerByte = (byte)(rightTrigger / 257);
+
+
+  
+        byte[] dataPacket = new byte[] { buttonPressed, leftTriggerByte, rightTriggerByte };
+
+        return dataPacket;
     }
 
     public void Dispose()

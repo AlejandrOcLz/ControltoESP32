@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using SharpDX.DirectInput;
 
 namespace ConsoleApp2
@@ -9,77 +10,69 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
+            EspConnection serialHandler = new EspConnection("COM8", 115200, 8, true);
+            serialHandler.OpenConnection();
+            var directInput = new DirectInput();
 
-            var click = "";
-            
+            // Lista todos los dispositivos de juego
+            Console.WriteLine("Dispositivos de juego disponibles:");
+            var gamepadDevices = directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices);
+            var joystickDevices = directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices);
 
-            EspConnection serialHandler = new EspConnection("COM6", 115200); // Cambia "COM3" por tu puerto serial
+            var allDevices = gamepadDevices.Concat(joystickDevices).ToArray();
 
-            try
+            if (allDevices.Length == 0)
             {
-                serialHandler.OpenConnection();
+                Console.WriteLine("No se encontró ningún control de videojuegos.");
+                return;
+            }
 
-                var directInput = new DirectInput();
+            for (int i = 0; i < allDevices.Length; i++)
+            {
+                Console.WriteLine($"{i + 1}. {allDevices[i].InstanceName}");
+            }
 
-                // Lista todos los dispositivos de juego
-                Console.WriteLine("Dispositivos de juego disponibles:");
-                var gamepadDevices = directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices);
-                var joystickDevices = directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices);
+            Console.WriteLine("Seleccione el número del control que desea utilizar:");
+            int deviceNumber;
+            if (!int.TryParse(Console.ReadLine(), out deviceNumber) || deviceNumber < 1 || deviceNumber > allDevices.Length)
+            {
+                Console.WriteLine("Selección inválida.");
+                return;
+            }
 
-                var allDevices = gamepadDevices.Concat(joystickDevices).ToArray();
+            var gamepadGuid = allDevices[deviceNumber - 1].InstanceGuid;
 
-                if (allDevices.Length == 0)
-                {
-                    Console.WriteLine("No se encontró ningún control de videojuegos.");
-                    return;
-                }
+            byte[] dataToSend;
 
-                for (int i = 0; i < allDevices.Length; i++)
-                {
-                    Console.WriteLine($"{i + 1}. {allDevices[i].InstanceName}");
-                }
+            using (var gamepad = new Gamepad(gamepadGuid))
+            {
+                Console.WriteLine("Control de videojuegos seleccionado: " + gamepad.InstanceName);
 
-                Console.WriteLine("Seleccione el número del control que desea utilizar:");
-                int deviceNumber;
-                if (!int.TryParse(Console.ReadLine(), out deviceNumber) || deviceNumber < 1 || deviceNumber > allDevices.Length)
-                {
-                    Console.WriteLine("Selección inválida.");
-                    return;
-                }
-
-                var gamepadGuid = allDevices[deviceNumber - 1].InstanceGuid;
-
-                using (var gamepad = new Gamepad(gamepadGuid))
-                {
-                    Console.WriteLine("Control de videojuegos seleccionado: " + gamepad.InstanceName);
-                    click = gamepad.InstanceName;
-
-                    // Poll events from gamepad
-                    while (true)
-                    {
-                        gamepad.PollEvents();
-                        System.Threading.Thread.Sleep(10);
-                    }
-                }
-
+                // Poll events from gamepad
                 while (true)
                 {
-                    var key = Console.ReadKey(intercept: true);
-                    if (key.Key == ConsoleKey.Enter)
+
+                    dataToSend = gamepad.PollEvents();
+                    
+                    
+                    try
                     {
-                        // Envía un mensaje al ESP32.
-                        serialHandler.SendMessage(click);
+                        serialHandler.SendMessage(dataToSend);
                     }
-                    else if (key.Key == ConsoleKey.X)
-                    {
-                        break;
+                    finally {
+                        
                     }
+                   
+
+                    System.Threading.Thread.Sleep(500);
                 }
             }
-            finally
-            {
-                serialHandler.CloseConnection();
-            }
+
+            serialHandler.CloseConnection();
+
+
+
+
         }
     }
 }
