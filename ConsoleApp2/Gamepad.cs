@@ -28,6 +28,9 @@ public class Gamepad : IDisposable
         String seleccion = "";
         byte buttonPressed = 0;
 
+        var data = joystick.GetBufferedData();
+
+
         // Revisar los botones
         for (int i = 0; i < buttons.Length; i++)
         {
@@ -47,7 +50,7 @@ public class Gamepad : IDisposable
 
         rightTrigger = 65535 - rightTrigger;
 
-        byte leftTriggerByte = (byte)(leftTrigger / 257);
+        byte leftTriggerByte = (byte)(leftTrigger / 363);
         byte rightTriggerByte = (byte)(rightTrigger / 257);
 
 
