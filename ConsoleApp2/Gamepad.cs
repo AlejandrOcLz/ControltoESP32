@@ -21,6 +21,7 @@ public class Gamepad : IDisposable
 
     public byte[] PollEvents()
     {
+
         joystick.Poll();
         var state = joystick.GetCurrentState();
         var buttons = state.Buttons;
@@ -51,7 +52,12 @@ public class Gamepad : IDisposable
         rightTrigger = 65535 - rightTrigger;
 
         byte leftTriggerByte = (byte)(leftTrigger / 363);
-        byte rightTriggerByte = (byte)(rightTrigger / 257);
+        byte rightTriggerByte = (byte)(rightTrigger / 363);
+
+        if (rightTriggerByte == 180)
+        {
+            rightTriggerByte = (byte)(rightTriggerByte - 1);
+        }
 
 
   

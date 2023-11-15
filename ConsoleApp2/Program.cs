@@ -10,7 +10,7 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
-            EspConnection serialHandler = new EspConnection("COM8", 115200, 8, true);
+            EspConnection serialHandler = new EspConnection("COM5", 9600, 8, true); // 115200
             serialHandler.OpenConnection();
             var directInput = new DirectInput();
 

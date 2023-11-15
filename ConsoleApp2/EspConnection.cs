@@ -41,6 +41,7 @@ public class EspConnection
     {
         Console.WriteLine($"{message.GetValue(0)} {message.GetValue(1)} {message.GetValue(2)}");
 
+
         if (serialPort.IsOpen)
         {
             serialPort.Write(message, 0, message.Length);
