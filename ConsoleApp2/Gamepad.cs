@@ -50,12 +50,13 @@ public class Gamepad : IDisposable
         int rightTrigger = state.RotationZ;
 
         rightTrigger = 65535 - rightTrigger;
+        leftTrigger = 65535 - leftTrigger;
 
         byte leftTriggerByte = (byte)(leftTrigger / 363);
         byte rightTriggerByte = (byte)(rightTrigger / 363);
 
         if (rightTriggerByte == 180)
-        {
+        { 
             rightTriggerByte = (byte)(rightTriggerByte - 1);
         }
 
